@@ -3,6 +3,7 @@
 
 #include "Player/AG_Character.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "AbilitySystem/AttributeSets/AG_AttributeSet.h"
@@ -12,10 +13,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Player/Input/AG_InputConfigData.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Components/AG_CharacterMovementComponent.h"
+#include "Player/Components/FootstepsComponent.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-AAG_Character::AAG_Character()
-{// Sets default values
+AAG_Character::AAG_Character(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer.SetDefaultSubobjectClass<UAG_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+{
 	PrimaryActorTick.bCanEverTick = false;
 
 	//Create a camera boom (pulls in towards the player if there is a collision)
@@ -25,17 +28,18 @@ AAG_Character::AAG_Character()
 	CameraBoom->bUsePawnControlRotation = true;
 
 	//Create a follow camera 
-	FollowCamera =CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
 	//AbilitySystem
-	AbilitySystemComponent = CreateDefaultSubobject<UAG_AbilitySystemComponentBase>(TEXT("AbilitySystemComponent"));
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	ASC = CreateDefaultSubobject<UAG_AbilitySystemComponentBase>(TEXT("AbilitySystemComponent"));
+	ASC->SetIsReplicated(true);
+	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UAG_AttributeSet>(TEXT("AttributeSet"));
 	
+	FootstepsComponent = CreateDefaultSubobject<UFootstepsComponent>(TEXT("FootstepsComponent"));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -48,7 +52,7 @@ void AAG_Character::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	ASC->InitAbilityActorInfo(this, this);
 	GiveAbilities();
 	ApplyStartupEffects();
 }
@@ -56,7 +60,7 @@ void AAG_Character::PossessedBy(AController* NewController)
 void AAG_Character::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	ASC->InitAbilityActorInfo(this, this);
 }
 
 void AAG_Character::InitFromCharacterData(const FCharacterData& InCharacterData, bool bFromReplication)
@@ -75,6 +79,8 @@ void AAG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PEI->BindAction(InputActions->InputMove, ETriggerEvent::Triggered, this, &AAG_Character::Move);
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &AAG_Character::Look);
+	PEI->BindAction(InputActions->Jump, ETriggerEvent::Triggered, this, &AAG_Character::ActivateJump);
+	PEI->BindAction(InputActions->Jump, ETriggerEvent::Completed, this, &AAG_Character::DeactivateJump);
 }
 
 void AAG_Character::PostInitializeComponents()
@@ -88,7 +94,7 @@ void AAG_Character::PostInitializeComponents()
 
 UAbilitySystemComponent* AAG_Character::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	return ASC;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -133,6 +139,30 @@ void AAG_Character::Look(const FInputActionValue& Value)
 	}
 }
 
+void AAG_Character::ActivateJump()
+{
+	FGameplayEventData Payload;
+
+	Payload.Instigator = this;
+	Payload.EventTag = JumpEventTag;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, JumpEventTag,Payload);
+}
+
+void AAG_Character::DeactivateJump()
+{
+}
+
+void AAG_Character::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	if (ASC)
+	{
+		ASC->RemoveActiveEffectsWithTags(InAirTag);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void AAG_Character::OnRep_CharacterData()
 {
 	InitFromCharacterData(CharacterData, true);
@@ -148,10 +178,10 @@ bool AAG_Character::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effec
 		return false;
 	}
 
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(Effect, 1, InEffectContext);
+	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(Effect, 1, InEffectContext);
 	if (SpecHandle.IsValid())
 	{
-		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 		return ActiveGEHandle.WasSuccessfullyApplied();
 	}
 	return false;
@@ -168,14 +198,19 @@ void AAG_Character::SetCharacterData(const FCharacterData& InCharacterData)
 	InitFromCharacterData(CharacterData);
 }
 
+UFootstepsComponent* AAG_Character::GetFootstepsComponent() const
+{
+	return FootstepsComponent;
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 void AAG_Character::GiveAbilities()
 {
-	if (HasAuthority() && AbilitySystemComponent)
+	if (HasAuthority() && ASC)
 	{
 		for (auto DefaultAbility : CharacterData.Abilities)
 		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(DefaultAbility));
+			ASC->GiveAbility(FGameplayAbilitySpec(DefaultAbility));
 		}
 	}
 }
@@ -184,7 +219,7 @@ void AAG_Character::ApplyStartupEffects()
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
 		for (auto CharacterEffect : CharacterData.Effects)

@@ -5,18 +5,17 @@
 #include "CoreMinimal.h"
 #include "ActionGameTypes.h"
 #include "Engine/DataAsset.h"
-#include "CharacterDataAsset.generated.h"
+#include "CharacterAnimDataAsset.generated.h"
 
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable)
-class ACTIONGAME_API UCharacterDataAsset : public UDataAsset
+UCLASS()
+class ACTIONGAME_API UCharacterAnimDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
+
 public:
 	UPROPERTY(EditDefaultsOnly)
-	FCharacterData CharacterData;
-
-	
+	FCharacterAnimationData CharacterAnimationData;
 };

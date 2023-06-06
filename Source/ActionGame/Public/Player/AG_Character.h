@@ -12,7 +12,7 @@
 #include "AG_Character.generated.h"
 
 
-
+class UFootstepsComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class UAG_InputConfigData;
@@ -28,7 +28,7 @@ class AAG_Character : public ACharacter, public IAbilitySystemInterface
 
 public:
 	// Sets default values for this character's properties
-	AAG_Character();
+	AAG_Character(const FObjectInitializer& ObjectInitializer);
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -44,6 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterData(const FCharacterData& InCharacterData);
 
+	UFUNCTION()
+	UFootstepsComponent* GetFootstepsComponent() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -56,6 +59,9 @@ protected:
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+	void ActivateJump();
+	void DeactivateJump();
+	virtual void Landed(const FHitResult& Hit) override;
 
 	UFUNCTION()
 	void OnRep_CharacterData();
@@ -75,7 +81,7 @@ protected:
 	UAG_InputConfigData* InputActions;
 
 	UPROPERTY(EditDefaultsOnly)
-	UAG_AbilitySystemComponentBase* AbilitySystemComponent;
+	UAG_AbilitySystemComponentBase* ASC;
 
 	UPROPERTY(Transient)
 	UAG_AttributeSet* AttributeSet;
@@ -85,4 +91,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UCharacterDataAsset* CharacterDataAsset;
+
+	UPROPERTY()
+	UFootstepsComponent* FootstepsComponent;
+
+	// Gameplay Events
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
+	FGameplayTag JumpEventTag;
+
+	// Gameplay Tags
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
+	FGameplayTagContainer InAirTag;
 };

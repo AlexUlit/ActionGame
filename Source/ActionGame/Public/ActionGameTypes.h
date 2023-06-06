@@ -16,4 +16,27 @@ struct FCharacterData
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GAS")
 	TArray<TSubclassOf<class UGameplayAbility>> Abilities;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Animation")
+	class UCharacterAnimDataAsset* CharacterAnimDataAsset;
 };
+
+USTRUCT()
+struct FCharacterAnimationData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	class UBlendSpace* MovementBlendSpace = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimSequenceBase* IdleAnimationAsset = nullptr;
+};
+
+UENUM(BlueprintType)
+enum class EFoot : uint8
+{
+	Left UMETA(DisplayName = "Left"),
+	Right UMETA(DisplayName = "Right") 
+};
+
