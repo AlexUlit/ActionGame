@@ -36,9 +36,9 @@ AAG_Character::AAG_Character(const FObjectInitializer& ObjectInitializer):Super(
 	ASC = CreateDefaultSubobject<UAG_AbilitySystemComponentBase>(TEXT("AbilitySystemComponent"));
 	ASC->SetIsReplicated(true);
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	AttributeSet = CreateDefaultSubobject<UAG_AttributeSet>(TEXT("AttributeSet"));
 	
+	AttributeSet = CreateDefaultSubobject<UAG_AttributeSet>(TEXT("AttributeSet"));
+	ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxMovementSpeedAttribute()).AddUObject(this,&AAG_Character::OnMaxMovementSpeedChanged);
 	FootstepsComponent = CreateDefaultSubobject<UFootstepsComponent>(TEXT("FootstepsComponent"));
 }
 
@@ -67,6 +67,42 @@ void AAG_Character::InitFromCharacterData(const FCharacterData& InCharacterData,
 {
 }
 
+void AAG_Character::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	if (!CrouchStateEffect.Get()) return;;
+	UE_LOG(LogTemp, Error, TEXT("Crouch"));
+	if (ASC)
+	{
+		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(CrouchStateEffect, 1, EffectContext);
+
+		if (SpecHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			if (!ActiveGEHandle.WasSuccessfullyApplied())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Ability %s failed to apply crouch effect %s"), *GetName(), * GetNameSafe(CrouchStateEffect));
+			}
+		}
+	}
+}
+
+void AAG_Character::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+
+	if (ASC && CrouchStateEffect.Get())
+	{
+		ASC->RemoveActiveGameplayEffectBySourceEffect(CrouchStateEffect, ASC);
+	}
+}
+
+void AAG_Character::OnMaxMovementSpeedChanged(const FOnAttributeChangeData& Data)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 void AAG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {// Called to bind functionality to input
@@ -79,8 +115,11 @@ void AAG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PEI->BindAction(InputActions->InputMove, ETriggerEvent::Triggered, this, &AAG_Character::Move);
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &AAG_Character::Look);
-	PEI->BindAction(InputActions->Jump, ETriggerEvent::Triggered, this, &AAG_Character::ActivateJump);
-	PEI->BindAction(InputActions->Jump, ETriggerEvent::Completed, this, &AAG_Character::DeactivateJump);
+	PEI->BindAction(InputActions->Jump, ETriggerEvent::Started, this, &AAG_Character::ActivateJump);
+	PEI->BindAction(InputActions->Crouch, ETriggerEvent::Started, this, &AAG_Character::ActivateCrouch);
+	PEI->BindAction(InputActions->Crouch, ETriggerEvent::Completed, this, &AAG_Character::DeactivateCrouch);
+	PEI->BindAction(InputActions->Sprint, ETriggerEvent::Started, this, &AAG_Character::ActivateSprint);
+	PEI->BindAction(InputActions->Sprint, ETriggerEvent::Completed, this, &AAG_Character::DeactivateSprint);
 }
 
 void AAG_Character::PostInitializeComponents()
@@ -149,8 +188,38 @@ void AAG_Character::ActivateJump()
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, JumpEventTag,Payload);
 }
 
-void AAG_Character::DeactivateJump()
+
+void AAG_Character::ActivateCrouch()
 {
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(CrouchTag,true);
+	}
+}
+
+void AAG_Character::DeactivateCrouch()
+{
+	if (ASC)
+	{
+		ASC->CancelAbilities(&CrouchTag);
+	}
+	
+}
+
+void AAG_Character::ActivateSprint()
+{
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(SprintTag, true);
+	}
+}
+
+void AAG_Character::DeactivateSprint()
+{
+	if (ASC)
+	{
+		ASC->CancelAbilities(&SprintTag);
+	}
 }
 
 void AAG_Character::Landed(const FHitResult& Hit)

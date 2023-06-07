@@ -31,6 +31,12 @@ struct FCharacterAnimationData
 
 	UPROPERTY(EditDefaultsOnly)
 	class UAnimSequenceBase* IdleAnimationAsset = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UBlendSpace* CrouchBlendSpace = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimSequenceBase* CrouchIdleAnimationAsset = nullptr;
 };
 
 UENUM(BlueprintType)

@@ -56,11 +56,21 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void InitFromCharacterData(const FCharacterData& InCharacterData, bool bFromReplication = false);
+
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+
+	void OnMaxMovementSpeedChanged(const FOnAttributeChangeData& Data);
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void ActivateJump();
-	void DeactivateJump();
+	void ActivateCrouch();
+	void DeactivateCrouch();
+	void ActivateSprint();
+	void DeactivateSprint();
+	
+	
 	virtual void Landed(const FHitResult& Hit) override;
 
 	UFUNCTION()
@@ -100,7 +110,19 @@ protected:
 	FGameplayTag JumpEventTag;
 
 	// Gameplay Tags
-
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
 	FGameplayTagContainer InAirTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
+	FGameplayTagContainer CrouchTag;
+
+	UPROPERTY(EditDefaultsOnly, Category ="GameplayTags")
+	FGameplayTagContainer SprintTag;
+
+	// Gameplay Effects
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEffects")
+	TSubclassOf<UGameplayEffect> CrouchStateEffect;
+
+	//Delegates
+	FDelegateHandle MaxMovementSpeedChangedDelegateHandle;
 };

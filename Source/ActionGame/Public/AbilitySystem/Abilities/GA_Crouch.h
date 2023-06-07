@@ -4,19 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/AG_GameplayAbility.h"
-#include "GA_Jump.generated.h"
-
-class UGameplayEffect;
+#include "GA_Crouch.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONGAME_API UGA_Jump : public UAG_GameplayAbility
+class ACTIONGAME_API UGA_Crouch : public UAG_GameplayAbility
 {
 	GENERATED_BODY()
-	UGA_Jump();
+
+	UGA_Crouch();
 
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	
 };

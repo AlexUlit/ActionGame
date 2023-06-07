@@ -31,3 +31,29 @@ UAnimSequenceBase* UAG_AnimInstance::GetIdleAnimation() const
 	}
 	return DefaultCharacterAnimDataAsset ? DefaultCharacterAnimDataAsset->CharacterAnimationData.IdleAnimationAsset : nullptr;
 }
+
+UBlendSpace* UAG_AnimInstance::GetCrouchBlendSpace() const
+{
+	if (AAG_Character* ActionGameCharacter = Cast<AAG_Character>(GetOwningActor()))
+	{
+		FCharacterData Data = ActionGameCharacter->GetCharacterData();
+		if (Data.CharacterAnimDataAsset)
+		{
+			return Data.CharacterAnimDataAsset->CharacterAnimationData.CrouchBlendSpace;
+		}
+	}
+	return DefaultCharacterAnimDataAsset ? DefaultCharacterAnimDataAsset->CharacterAnimationData.CrouchBlendSpace : nullptr;
+}
+
+UAnimSequenceBase* UAG_AnimInstance::GetCrouchIdleAnimation() const
+{
+	if (AAG_Character* ActionGameCharacter = Cast<AAG_Character>(GetOwningActor()))
+	{
+		FCharacterData Data = ActionGameCharacter->GetCharacterData();
+		if (Data.CharacterAnimDataAsset)
+		{
+			return Data.CharacterAnimDataAsset->CharacterAnimationData.CrouchIdleAnimationAsset;
+		}
+	}
+	return DefaultCharacterAnimDataAsset ? DefaultCharacterAnimDataAsset->CharacterAnimationData.CrouchIdleAnimationAsset : nullptr;
+}

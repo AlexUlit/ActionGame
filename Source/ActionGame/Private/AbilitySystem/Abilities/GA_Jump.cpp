@@ -16,42 +16,27 @@ bool UGA_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
 	FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	if (!UAG_GameplayAbility::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
 	}
 
 	const ACharacter* Character = CastChecked<ACharacter>(ActorInfo->AvatarActor.Get(), ECastCheckedType::NullAllowed);
-	return Character->CanJump();
+ 	return Character->CanJump();
 }
 
 void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
 	if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
 		if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 		{
 			return;
 		}
-
+		Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 		ACharacter * Character = CastChecked<ACharacter>(ActorInfo->AvatarActor.Get());
 		Character->Jump();
-
-		if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
-		{
-			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(JumpEffect, 1.f, EffectContext);
-			if (SpecHandle.IsValid())
-			{
-				FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-				if (!ActiveGEHandle.WasSuccessfullyApplied())
-				{
-					UE_LOG(LogTemp, Error, TEXT("Failed to apply jump effect! %s"), *GetNameSafe(Character))
-				}
-			}
-		}
-		
 	}
 }
