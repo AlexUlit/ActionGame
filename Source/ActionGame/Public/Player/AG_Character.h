@@ -12,6 +12,7 @@
 #include "AG_Character.generated.h"
 
 
+class UAG_CharacterMovementComponent;
 class UFootstepsComponent;
 class UCameraComponent;
 class USpringArmComponent;
@@ -20,6 +21,7 @@ class UInputMappingContext;
 class UAG_AbilitySystemComponentBase;
 class UAG_AttributeSet;
 class UGameplayEffect;
+class UAG_MotionWarpingComponent;
 
 UCLASS(Config=Game)
 class AAG_Character : public ACharacter, public IAbilitySystemInterface
@@ -46,6 +48,9 @@ public:
 
 	UFUNCTION()
 	UFootstepsComponent* GetFootstepsComponent() const;
+
+	UFUNCTION()
+	UAG_MotionWarpingComponent* GetMotionWarpingComponent() const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -102,8 +107,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UCharacterDataAsset* CharacterDataAsset;
 
+	UAG_CharacterMovementComponent* AGCharacterMovementComponent;
+
 	UPROPERTY()
 	UFootstepsComponent* FootstepsComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWarp")
+	UAG_MotionWarpingComponent* MotionWarpingComponent;
 
 	// Gameplay Events
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")

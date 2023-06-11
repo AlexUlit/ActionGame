@@ -6,6 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AG_CharacterMovementComponent.generated.h"
 
+class UGameplayAbility;
+class UAbilitySystemComponent;
 /**
  * 
  */
@@ -13,5 +15,11 @@ UCLASS()
 class ACTIONGAME_API UAG_CharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
+
+public:
+	bool TryTraversal(UAbilitySystemComponent* ASC);
 	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> TraversalAbilitiesOrdered;
 };

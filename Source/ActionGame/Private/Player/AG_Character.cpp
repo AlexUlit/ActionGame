@@ -14,12 +14,15 @@
 #include "Player/Input/AG_InputConfigData.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Components/AG_CharacterMovementComponent.h"
+#include "Player/Components/AG_MotionWarpingComponent.h"
 #include "Player/Components/FootstepsComponent.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 AAG_Character::AAG_Character(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer.SetDefaultSubobjectClass<UAG_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	AGCharacterMovementComponent = Cast<UAG_CharacterMovementComponent>(GetCharacterMovement());
 
 	//Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -39,7 +42,9 @@ AAG_Character::AAG_Character(const FObjectInitializer& ObjectInitializer):Super(
 	
 	AttributeSet = CreateDefaultSubobject<UAG_AttributeSet>(TEXT("AttributeSet"));
 	ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxMovementSpeedAttribute()).AddUObject(this,&AAG_Character::OnMaxMovementSpeedChanged);
+
 	FootstepsComponent = CreateDefaultSubobject<UFootstepsComponent>(TEXT("FootstepsComponent"));
+	MotionWarpingComponent = CreateDefaultSubobject<UAG_MotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -180,12 +185,7 @@ void AAG_Character::Look(const FInputActionValue& Value)
 
 void AAG_Character::ActivateJump()
 {
-	FGameplayEventData Payload;
-
-	Payload.Instigator = this;
-	Payload.EventTag = JumpEventTag;
-
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, JumpEventTag,Payload);
+	AGCharacterMovementComponent->TryTraversal(ASC);
 }
 
 
@@ -270,6 +270,11 @@ void AAG_Character::SetCharacterData(const FCharacterData& InCharacterData)
 UFootstepsComponent* AAG_Character::GetFootstepsComponent() const
 {
 	return FootstepsComponent;
+}
+
+UAG_MotionWarpingComponent* AAG_Character::GetMotionWarpingComponent() const
+{
+	return MotionWarpingComponent;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
