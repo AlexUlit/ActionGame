@@ -12,6 +12,7 @@
 #include "AG_Character.generated.h"
 
 
+class UInventoryComponent;
 class UAG_CharacterMovementComponent;
 class UFootstepsComponent;
 class UCameraComponent;
@@ -114,6 +115,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWarp")
 	UAG_MotionWarpingComponent* MotionWarpingComponent;
+
+	UPROPERTY(EditAnywhere, Replicated)
+	UInventoryComponent* InventoryComponent = nullptr;
 
 	// Gameplay Events
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")

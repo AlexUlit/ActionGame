@@ -81,7 +81,6 @@ bool UGA_Vault::CommitCheck(const FGameplayAbilitySpecHandle Handle, const FGame
 
 	if (JumpToLocationIdx == -1)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Fuck"))
 		return false;
 	}
 	

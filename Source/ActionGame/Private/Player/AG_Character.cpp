@@ -11,6 +11,7 @@
 #include "ActionGame/DataAssets/CharacterDataAsset.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "Player/Input/AG_InputConfigData.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Components/AG_CharacterMovementComponent.h"
@@ -45,6 +46,9 @@ AAG_Character::AAG_Character(const FObjectInitializer& ObjectInitializer):Super(
 
 	FootstepsComponent = CreateDefaultSubobject<UFootstepsComponent>(TEXT("FootstepsComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UAG_MotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent")); // include?
+	InventoryComponent->SetIsReplicated(true);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -308,6 +312,7 @@ void AAG_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AAG_Character, CharacterData);
+	DOREPLIFETIME(AAG_Character, InventoryComponent);
 }
 
 
