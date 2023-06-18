@@ -66,7 +66,7 @@ public:
 	FName Name;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<AItemActor> ItemActorClass; //include ?
+	TSubclassOf<AItemActor> ItemActorClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName AttachmentSocket = NAME_None;

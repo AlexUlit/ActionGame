@@ -29,17 +29,17 @@ void UInventoryComponent::InitializeComponent()
 	Super::InitializeComponent();
 	if (GetOwner()->HasAuthority())
 	{
-
+	
 		for (auto ItemClass : DefaultItems)
 		{
 			InventoryList.AddItem(ItemClass);
 		}
-
-		if (InventoryList.GetItemsRef().Num())
-		{
-			EquipItem(InventoryList.GetItemsRef()[0].ItemInstance->ItemStaticDataClass);
-		}
-
+	
+		// if (InventoryList.GetItemsRef().Num())
+		// {
+		// 	EquipItem(InventoryList.GetItemsRef()[0].ItemInstance->ItemStaticDataClass);
+		// }
+	
 		//DropItem();
 	}
 }
@@ -47,6 +47,12 @@ void UInventoryComponent::InitializeComponent()
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (InventoryList.GetItemsRef().Num())
+		 {
+		 	EquipItem(InventoryList.GetItemsRef()[0].ItemInstance->ItemStaticDataClass);
+		 }
+	
+		//DropItem();
 }
 
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

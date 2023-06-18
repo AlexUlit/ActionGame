@@ -14,7 +14,6 @@
 // Sets default values
 AItemActor::AItemActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
@@ -52,7 +51,7 @@ void AItemActor::Tick(float DeltaTime)
 bool AItemActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	WroteSomething |= Channel->ReplicateSubobject(Channel, *Bunch, *RepFlags);
+	WroteSomething |= Channel->ReplicateSubobject(ItemInstance, *Bunch, *RepFlags);
 	return WroteSomething;
 }
 
