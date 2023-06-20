@@ -295,6 +295,11 @@ void AAG_Character::SetCharacterData(const FCharacterData& InCharacterData)
 	InitFromCharacterData(CharacterData);
 }
 
+UInventoryComponent* AAG_Character::GetInventoryComponent() const
+{
+	return InventoryComponent;
+}
+
 UFootstepsComponent* AAG_Character::GetFootstepsComponent() const
 {
 	return FootstepsComponent;

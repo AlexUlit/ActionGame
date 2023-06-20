@@ -48,6 +48,9 @@ public:
 	void SetCharacterData(const FCharacterData& InCharacterData);
 
 	UFUNCTION()
+	UInventoryComponent* GetInventoryComponent() const;
+
+	UFUNCTION()
 	UFootstepsComponent* GetFootstepsComponent() const;
 
 	UFUNCTION()

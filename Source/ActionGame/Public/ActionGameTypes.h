@@ -23,7 +23,7 @@ struct FCharacterData
 	class UCharacterAnimDataAsset* CharacterAnimDataAsset = nullptr;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCharacterAnimationData
 {
 	GENERATED_BODY()
@@ -73,5 +73,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool bCanBeEquipped = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FCharacterAnimationData CharacterAnimationData;
 };
 
