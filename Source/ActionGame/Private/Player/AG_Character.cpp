@@ -129,6 +129,9 @@ void AAG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PEI->BindAction(InputActions->Crouch, ETriggerEvent::Completed, this, &AAG_Character::DeactivateCrouch);
 	PEI->BindAction(InputActions->Sprint, ETriggerEvent::Started, this, &AAG_Character::ActivateSprint);
 	PEI->BindAction(InputActions->Sprint, ETriggerEvent::Completed, this, &AAG_Character::DeactivateSprint);
+	PEI->BindAction(InputActions->DropItem, ETriggerEvent::Triggered, this, &AAG_Character::DropItem);
+	PEI->BindAction(InputActions->EquipNextItem, ETriggerEvent::Triggered, this, &AAG_Character::EquipNextItem);
+	PEI->BindAction(InputActions->UnequipItem, ETriggerEvent::Triggered, this, &AAG_Character::UnequipItem);
 }
 
 void AAG_Character::PostInitializeComponents()
@@ -224,6 +227,27 @@ void AAG_Character::DeactivateSprint()
 	{
 		ASC->CancelAbilities(&SprintTag);
 	}
+}
+
+void AAG_Character::DropItem()
+{
+	FGameplayEventData EventPayLoad;
+	EventPayLoad.EventTag = UInventoryComponent::DropItemTag;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, UInventoryComponent::DropItemTag, EventPayLoad);
+}
+
+void AAG_Character::EquipNextItem()
+{
+	FGameplayEventData EventPayLoad;
+	EventPayLoad.EventTag = UInventoryComponent::EquipNextTag;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, UInventoryComponent::EquipNextTag, EventPayLoad);
+}
+
+void AAG_Character::UnequipItem()
+{
+	FGameplayEventData EventPayLoad;
+	EventPayLoad.EventTag = UInventoryComponent::UnequipTag;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, UInventoryComponent::UnequipTag, EventPayLoad);
 }
 
 void AAG_Character::Landed(const FHitResult& Hit)

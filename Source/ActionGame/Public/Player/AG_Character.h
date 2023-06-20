@@ -75,6 +75,9 @@ protected:
 	void DeactivateCrouch();
 	void ActivateSprint();
 	void DeactivateSprint();
+	void DropItem();
+	void EquipNextItem();
+	void UnequipItem();
 	
 	
 	virtual void Landed(const FHitResult& Hit) override;

@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SphereComponent.h"
 #include "Engine/ActorChannel.h"
+#include "Inventory/InventoryComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Inventory/InventoryItemInstance.h"
@@ -16,6 +17,7 @@ AItemActor::AItemActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+	SetReplicateMovement(true);
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(RootComponent);
@@ -30,15 +32,48 @@ void AItemActor::Init(UInventoryItemInstance* InInstance)
 void AItemActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		if (!IsValid(ItemInstance) && IsValid(ItemStaticDataClass))
+		{
+			ItemInstance = NewObject<UInventoryItemInstance>();
+			ItemInstance->Init(ItemStaticDataClass);
+
+			SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			SphereComponent->SetGenerateOverlapEvents(true);
+		}
+	}
 }
 
 void AItemActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	FGameplayEventData EventPayload;
-	EventPayload.OptionalObject = this;
+	if (HasAuthority())
+	{
+		FGameplayEventData EventPayload;
+		EventPayload.Instigator = this;
+		EventPayload.OptionalObject = ItemInstance;
+		EventPayload.EventTag = UInventoryComponent::EquipItemActorTag;
 	
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OtherActor, OverlapEventTag, EventPayload);
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OtherActor, UInventoryComponent::EquipItemActorTag, EventPayload);
+	}
+	
+}
+
+void AItemActor::OnRep_ItemState()
+{
+	switch (ItemState)
+	{
+	case EItemState::Equipped:
+		SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		SphereComponent->SetGenerateOverlapEvents(false);
+		break;
+	default:
+		SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		SphereComponent->SetGenerateOverlapEvents(true);
+		break;
+	}
 }
 
 
@@ -58,19 +93,23 @@ bool AItemActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, F
 void AItemActor::OnEquipped()
 {
 	ItemState = EItemState::Equipped;
+	
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SphereComponent->SetGenerateOverlapEvents(false);
 }
 
 void AItemActor::OnUnequipped()
 {
 	ItemState = EItemState::None;
+	
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SphereComponent->SetGenerateOverlapEvents(false);
 }
 
 void AItemActor::OnDropped()
 {
 	ItemState = EItemState::Dropped;
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	
 	GetRootComponent()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform );
 
 	 if (AActor* ActorOwner = GetOwner())
@@ -89,18 +128,21 @@ void AItemActor::OnDropped()
 	
 	 	static const auto CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugInventory"));
 	 	const bool bShowDebugInventory = CVar->GetInt()>0;
-	
+
+		FVector TargetLocation = TraceEnd;
+	 	
 	 	EDrawDebugTrace::Type DebugDrawType = bShowDebugInventory ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
-	
 	 	if (UKismetSystemLibrary::LineTraceSingleByProfile(this, TraceStart, TraceEnd, TEXT("WorldStatic"), true, ActorsToIgnore, DebugDrawType, TraceHit, true))
 	 	{
 	 		if (TraceHit.bBlockingHit)
 	 		{
-	 			SetActorLocation(TraceHit.Location);
-	 			return;
+	 			TargetLocation = TraceHit.Location;
 	 		}
 	 	}
-	 	SetActorLocation(TraceEnd);
+	 	SetActorLocation(TargetLocation);
+
+	 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	 	SphereComponent->SetGenerateOverlapEvents(true);
 	}
 }
 
