@@ -81,7 +81,8 @@ protected:
 	void DropItem();
 	void EquipNextItem();
 	void UnequipItem();
-	
+	void ActivateAttack();
+	void DeactivateAttack();
 	
 	virtual void Landed(const FHitResult& Hit) override;
 
@@ -128,6 +129,12 @@ protected:
 	// Gameplay Events
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
 	FGameplayTag JumpEventTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
+	FGameplayTag AttackStartedEventTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
+	FGameplayTag AttackEndedEventTag;
 
 	// Gameplay Tags
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")

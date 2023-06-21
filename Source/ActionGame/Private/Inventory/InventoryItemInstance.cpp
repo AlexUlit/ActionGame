@@ -64,6 +64,11 @@ void UInventoryItemInstance::OnDropped(AActor* InOwner)
 	bEquipped = false;
 }
 
+AItemActor* UInventoryItemInstance::GetItemActor() const
+{
+	return ItemActor;
+}
+
 void UInventoryItemInstance::TryGrandAbilities(AActor* InOwner)
 {
 	if (InOwner && InOwner->HasAuthority())

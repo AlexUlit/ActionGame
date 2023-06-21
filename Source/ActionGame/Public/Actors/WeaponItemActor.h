@@ -18,6 +18,9 @@ class ACTIONGAME_API AWeaponItemActor : public AItemActor
 	
 	const UWeaponStaticData* GetWeaponStaticData() const;
 
+	UFUNCTION(BlueprintPure)
+	FVector GetMuzzleLocation() const;
+
 protected:
 	virtual void InitInternal() override;
 	

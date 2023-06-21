@@ -7,6 +7,8 @@
 #include "GameplayAbilitySpecHandle.h"
 #include "InventoryItemInstance.generated.h"
 
+class AItemActor;
+
 /**
  * 
  */
@@ -24,6 +26,9 @@ public:
 	virtual void OnEquipped(AActor* InOwner = nullptr);
 	virtual void OnUnequipped(AActor* InOwner = nullptr);
 	virtual void OnDropped(AActor* InOwner = nullptr);
+
+	UFUNCTION(BlueprintPure)
+	AItemActor* GetItemActor() const;
 
 	UPROPERTY(Replicated)
 	TSubclassOf<UItemStaticData> ItemStaticDataClass;
