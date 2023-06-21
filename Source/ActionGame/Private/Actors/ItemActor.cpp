@@ -27,6 +27,7 @@ AItemActor::AItemActor()
 void AItemActor::Init(UInventoryItemInstance* InInstance)
 {
 	ItemInstance = InInstance;
+	InitInternal();
 }
 
 void AItemActor::BeginPlay()
@@ -42,12 +43,14 @@ void AItemActor::BeginPlay()
 
 			SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			SphereComponent->SetGenerateOverlapEvents(true);
+
+			InitInternal();
 		}
 	}
 }
 
 void AItemActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (HasAuthority())
 	{
@@ -58,6 +61,11 @@ void AItemActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OtherActor, UInventoryComponent::EquipItemActorTag, EventPayload);
 	}
+	
+}
+
+void AItemActor::InitInternal()
+{
 	
 }
 
@@ -73,6 +81,14 @@ void AItemActor::OnRep_ItemState()
 		SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		SphereComponent->SetGenerateOverlapEvents(true);
 		break;
+	}
+}
+
+void AItemActor::OnRep_ItemInstance(UInventoryItemInstance* OldItemInstance)
+{
+	if (IsValid(ItemInstance) && !IsValid(OldItemInstance))
+	{
+		InitInternal();
 	}
 }
 

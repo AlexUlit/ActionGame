@@ -148,7 +148,7 @@ void UInventoryComponent::HandleGameplayEventInternal(FGameplayEventData Payload
 
 				if (Payload.Instigator)
 				{
-					Cast<AActor>(Payload.Instigator)->Destroy(); //25:22
+					Cast<AActor>(Payload.Instigator)->Destroy();
 				}
 			}
 		}
@@ -234,7 +234,7 @@ void UInventoryComponent::UnequipItem()
 	{
 		if (IsValid(CurrentItem))
 		{
-			CurrentItem->OnUnequipped();
+			CurrentItem->OnUnequipped(GetOwner());
 			CurrentItem = nullptr;
 		}
 	}
@@ -247,7 +247,7 @@ void UInventoryComponent::DropItem()
 	{
 		if (IsValid(CurrentItem))
 		{
-			CurrentItem->OnDropped();
+			CurrentItem->OnDropped(GetOwner());
 			RemoveItem(CurrentItem->ItemStaticDataClass);
 			CurrentItem = nullptr;
 		}

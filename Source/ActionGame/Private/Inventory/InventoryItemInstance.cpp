@@ -3,6 +3,8 @@
 
 #include "Inventory/InventoryItemInstance.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "ActionGameStatics.h"
 #include "Actors/ItemActor.h"
 #include "GameFramework/Character.h"
@@ -36,27 +38,64 @@ void UInventoryItemInstance::OnEquipped(AActor* InOwner)
 			ItemActor->AttachToComponent(SkeletalMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, StaticData->AttachmentSocket);
 		}
 	}
+	TryGrandAbilities(InOwner);
 	bEquipped = true;
 }
 
-void UInventoryItemInstance::OnUnequipped()
+void UInventoryItemInstance::OnUnequipped(AActor* InOwner)
 {
 	if (ItemActor)
 	{
 		ItemActor->Destroy();
 		ItemActor = nullptr;
 	}
+	TryRemoveAbilities(InOwner);
 	bEquipped = false;
 }
 
-void UInventoryItemInstance::OnDropped()
+void UInventoryItemInstance::OnDropped(AActor* InOwner)
 {
 	if (ItemActor)
 	{
 		ItemActor->OnDropped();
 		ItemActor = nullptr;
 	}
+	TryRemoveAbilities(InOwner);
 	bEquipped = false;
+}
+
+void UInventoryItemInstance::TryGrandAbilities(AActor* InOwner)
+{
+	if (InOwner && InOwner->HasAuthority())
+	{
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InOwner))
+		{
+			const UItemStaticData* StaticData = GetItemStaticData();
+
+			for (auto ItemAbility : StaticData->GrantedAbilities)
+			{
+				GrantedAbilityHandles.Add(ASC->GiveAbility(FGameplayAbilitySpec(ItemAbility)));
+			}
+		}
+	}
+}
+
+void UInventoryItemInstance::TryRemoveAbilities(AActor* InOwner)
+{
+	if (InOwner && InOwner->HasAuthority())
+	{
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InOwner))
+		{
+			const UItemStaticData* StaticData = GetItemStaticData();
+
+			for (auto AbilityHandle : GrantedAbilityHandles)
+			{
+				ASC->ClearAbility(AbilityHandle);
+			}
+			
+			GrantedAbilityHandles.Empty();
+		}
+	}
 }
 
 void UInventoryItemInstance::OnRep_Equipped()

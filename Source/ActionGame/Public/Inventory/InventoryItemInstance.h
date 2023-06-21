@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ActionGameTypes.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "InventoryItemInstance.generated.h"
 
 /**
@@ -21,11 +22,15 @@ public:
 	const UItemStaticData* GetItemStaticData() const;
 	
 	virtual void OnEquipped(AActor* InOwner = nullptr);
-	virtual void OnUnequipped();
-	virtual void OnDropped();
+	virtual void OnUnequipped(AActor* InOwner = nullptr);
+	virtual void OnDropped(AActor* InOwner = nullptr);
 
 	UPROPERTY(Replicated)
 	TSubclassOf<UItemStaticData> ItemStaticDataClass;
+
+protected:
+	void TryGrandAbilities(AActor* InOwner);
+	void TryRemoveAbilities(AActor* InOwner);
 	
 private:
 	virtual bool IsSupportedForNetworking() const override {return true;}
@@ -42,4 +47,7 @@ private:
 protected:
 	UPROPERTY(Replicated)
 	AItemActor* ItemActor = nullptr;
+
+	UPROPERTY()
+	TArray<FGameplayAbilitySpecHandle> GrantedAbilityHandles;
 };
