@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActionGameTypes.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AG_CharacterMovementComponent.generated.h"
 
@@ -17,9 +19,26 @@ class ACTIONGAME_API UAG_CharacterMovementComponent : public UCharacterMovementC
 	GENERATED_BODY()
 
 public:
+	virtual void BeginPlay() override;
+	
 	bool TryTraversal(UAbilitySystemComponent* ASC);
+
+	UFUNCTION(BlueprintPure)
+	EMovementDirectionType GetMovementDirectionType() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetMovementDirectionType(EMovementDirectionType InMovementDirectionType);
+
+	UFUNCTION()
+	void OnEnforcedStrafeTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+protected:
+	void HandleMovementDirection();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> TraversalAbilitiesOrdered;
+
+	UPROPERTY(EditAnywhere)
+	EMovementDirectionType MovementDirectionType;
 };

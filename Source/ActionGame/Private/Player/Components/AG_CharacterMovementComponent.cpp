@@ -3,8 +3,10 @@
 
 #include "Player/Components/AG_CharacterMovementComponent.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "GameFramework/Character.h"
 
 static TAutoConsoleVariable<int32> CVarShowTraversal(
 	TEXT("ShowDebugTraversal"),
@@ -15,6 +17,16 @@ static TAutoConsoleVariable<int32> CVarShowTraversal(
 	ECVF_Cheat);
 
 
+void UAG_CharacterMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	HandleMovementDirection();
+
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+	{
+		ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(TEXT("Movement.Enforced.Strafe"), EGameplayTagEventType::NewOrRemoved)).AddUObject(this, &UAG_CharacterMovementComponent::OnEnforcedStrafeTagChanged);
+	}
+}
 
 bool UAG_CharacterMovementComponent::TryTraversal(UAbilitySystemComponent* ASC)
 {
@@ -31,4 +43,44 @@ bool UAG_CharacterMovementComponent::TryTraversal(UAbilitySystemComponent* ASC)
 		}
 	}
 	return false;
+}
+
+EMovementDirectionType UAG_CharacterMovementComponent::GetMovementDirectionType() const
+{
+	return MovementDirectionType;
+}
+
+void UAG_CharacterMovementComponent::SetMovementDirectionType(EMovementDirectionType InMovementDirectionType)
+{
+	MovementDirectionType = InMovementDirectionType;
+	HandleMovementDirection();
+}
+
+void UAG_CharacterMovementComponent::OnEnforcedStrafeTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount)
+	{
+		SetMovementDirectionType(EMovementDirectionType::Strafe);
+	}
+	else
+	{
+		SetMovementDirectionType(EMovementDirectionType::OrientToMovement);
+	}
+}
+
+void UAG_CharacterMovementComponent::HandleMovementDirection()
+{
+	switch (MovementDirectionType)
+	{
+	case EMovementDirectionType::Strafe:
+		bUseControllerDesiredRotation = true;
+		bOrientRotationToMovement = false;
+		CharacterOwner->bUseControllerRotationYaw = true;
+		break;
+	default:
+		bUseControllerDesiredRotation = false;
+		bOrientRotationToMovement = true;
+		CharacterOwner->bUseControllerRotationYaw = false;
+		break;
+	}
 }

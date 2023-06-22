@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ActionGameTypes.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "InventoryItemInstance.generated.h"
 
@@ -36,6 +37,8 @@ public:
 protected:
 	void TryGrandAbilities(AActor* InOwner);
 	void TryRemoveAbilities(AActor* InOwner);
+	void TryApplyEffects(AActor* InOwner);
+	void TryRemoveEffects(AActor* InOwner);
 	
 private:
 	virtual bool IsSupportedForNetworking() const override {return true;}
@@ -55,4 +58,6 @@ protected:
 
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> GrantedAbilityHandles;
+
+	TArray<FActiveGameplayEffectHandle> OngoingEffectHandles;
 };
