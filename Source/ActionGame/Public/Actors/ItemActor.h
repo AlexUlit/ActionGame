@@ -55,6 +55,6 @@ protected:
 	UPROPERTY()
 	USphereComponent* SphereComponent = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<UItemStaticData> ItemStaticDataClass;
 };

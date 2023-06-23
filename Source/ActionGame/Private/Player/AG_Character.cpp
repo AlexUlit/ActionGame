@@ -131,13 +131,14 @@ void AAG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PEI->BindAction(InputActions->Sprint, ETriggerEvent::Completed, this, &AAG_Character::DeactivateSprint);
 	PEI->BindAction(InputActions->DropItem, ETriggerEvent::Triggered, this, &AAG_Character::DropItem);
 	PEI->BindAction(InputActions->EquipNextItem, ETriggerEvent::Triggered, this, &AAG_Character::EquipNextItem);
+	PEI->BindAction(InputActions->UnequipItem, ETriggerEvent::Triggered, this, &AAG_Character::UnequipItem);
 	PEI->BindAction(InputActions->Attack, ETriggerEvent::Started, this, &AAG_Character::ActivateAttack);
 	PEI->BindAction(InputActions->Attack, ETriggerEvent::Completed, this, &AAG_Character::DeactivateAttack);
 }
 
-void AAG_Character::PostInitializeComponents()
+void AAG_Character::PostLoad()
 {
-	Super::PostInitializeComponents();
+	Super::PostLoad();
 	if(IsValid(CharacterDataAsset))
 	{
 		SetCharacterData(CharacterDataAsset->CharacterData);

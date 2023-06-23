@@ -109,5 +109,11 @@ public:
 	UStaticMesh* StaticMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UAnimMontage* AttackMontage; //forward declaration-? class UAnimMontage
+	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float FireRate;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float BaseDamage;
 };
