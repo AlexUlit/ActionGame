@@ -14,7 +14,8 @@ public class ActionGame : ModuleRules
 			{
 			"GameplayAbilities",
 			"GameplayTags",
-			"GameplayTasks",
+			"GameplayTasks", 
+			"Niagara"
 			}
 		);
 

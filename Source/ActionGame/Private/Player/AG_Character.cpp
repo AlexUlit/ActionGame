@@ -134,6 +134,8 @@ void AAG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PEI->BindAction(InputActions->UnequipItem, ETriggerEvent::Triggered, this, &AAG_Character::UnequipItem);
 	PEI->BindAction(InputActions->Attack, ETriggerEvent::Started, this, &AAG_Character::ActivateAttack);
 	PEI->BindAction(InputActions->Attack, ETriggerEvent::Completed, this, &AAG_Character::DeactivateAttack);
+	PEI->BindAction(InputActions->Aim, ETriggerEvent::Started, this, &AAG_Character::ActivateAim);
+	PEI->BindAction(InputActions->Aim, ETriggerEvent::Completed, this, &AAG_Character::DeactivateAim);
 }
 
 void AAG_Character::PostLoad()
@@ -266,6 +268,20 @@ void AAG_Character::DeactivateAttack()
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, AttackEndedEventTag, EventPayLoad);
 }
 
+void AAG_Character::ActivateAim()
+{
+	FGameplayEventData EventPayLoad;
+	EventPayLoad.EventTag = AimStartedEventTag;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, AimStartedEventTag, EventPayLoad);
+}
+
+void AAG_Character::DeactivateAim()
+{
+	FGameplayEventData EventPayLoad;
+	EventPayLoad.EventTag = AimEndedEventTag;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, AimEndedEventTag, EventPayLoad);
+}
+
 void AAG_Character::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
@@ -324,6 +340,11 @@ UFootstepsComponent* AAG_Character::GetFootstepsComponent() const
 UAG_MotionWarpingComponent* AAG_Character::GetMotionWarpingComponent() const
 {
 	return MotionWarpingComponent;
+}
+
+UCameraComponent* AAG_Character::GetFollowCamera() const
+{
+	return FollowCamera;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

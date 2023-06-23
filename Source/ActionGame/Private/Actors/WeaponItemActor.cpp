@@ -3,7 +3,10 @@
 
 #include "Actors/WeaponItemActor.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Inventory/InventoryItemInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "PhysicalMaterials/AG_PhysicalMaterial.h"
 
 AWeaponItemActor::AWeaponItemActor()
 {
@@ -17,6 +20,18 @@ const UWeaponStaticData* AWeaponItemActor::GetWeaponStaticData() const
 FVector AWeaponItemActor::GetMuzzleLocation() const
 {
 	return MeshComponent ? MeshComponent->GetSocketLocation(TEXT("Muzzle")) : GetActorLocation();
+}
+
+void AWeaponItemActor::PlayerWeaponEffects(const FHitResult& InHitResult)
+{
+	if (HasAuthority())
+	{
+		MulticastPlayerWeaponEffects(InHitResult);
+	}
+	else
+	{
+		PlayerWeaponEffectsInternal(InHitResult);
+	}
 }
 
 void AWeaponItemActor::InitInternal()
@@ -48,3 +63,29 @@ void AWeaponItemActor::InitInternal()
 		}
 	}
 }
+
+void AWeaponItemActor::PlayerWeaponEffectsInternal(const FHitResult& InHitResult)
+{
+	if (InHitResult.PhysMaterial.Get())
+	{
+		UAG_PhysicalMaterial* PhysicalMaterial = Cast<UAG_PhysicalMaterial>(InHitResult.PhysMaterial.Get());
+		if (PhysicalMaterial)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this,PhysicalMaterial->PointImpactSound, InHitResult.ImpactPoint, 1.f);
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, PhysicalMaterial->PointImpactVFX, InHitResult.ImpactPoint);
+		}
+	}
+	if (const UWeaponStaticData* WeaponData = GetWeaponStaticData())
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, WeaponData->AttackSound, GetActorLocation(), 1.f);
+	}
+}
+
+void AWeaponItemActor::MulticastPlayerWeaponEffects_Implementation(const FHitResult& InHitResult)
+{
+	if (!Owner || Owner->GetLocalRole() != ROLE_AutonomousProxy)
+	{
+		PlayerWeaponEffectsInternal(InHitResult);
+	}
+}
+

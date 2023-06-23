@@ -56,6 +56,9 @@ public:
 	UFUNCTION()
 	UAG_MotionWarpingComponent* GetMotionWarpingComponent() const;
 
+	UFUNCTION()
+	UCameraComponent* GetFollowCamera() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -83,6 +86,8 @@ protected:
 	void UnequipItem();
 	void ActivateAttack();
 	void DeactivateAttack();
+	void ActivateAim();
+	void DeactivateAim();
 	
 	virtual void Landed(const FHitResult& Hit) override;
 
@@ -135,6 +140,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
 	FGameplayTag AttackEndedEventTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
+	FGameplayTag AimStartedEventTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
+	FGameplayTag AimEndedEventTag;
 
 	// Gameplay Tags
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
