@@ -41,6 +41,10 @@ public:
 	
 	bool ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effect, FGameplayEffectContextHandle InEffectContext);
 
+	void OnMaxMovementSpeedChanged(const FOnAttributeChangeData& Data);
+	void OnHealthAttributeChanged(const FOnAttributeChangeData& Data);
+	
+	
 	UFUNCTION(BlueprintCallable)
 	FCharacterData GetCharacterData() const;
 
@@ -59,6 +63,8 @@ public:
 	UFUNCTION()
 	UCameraComponent* GetFollowCamera() const;
 
+	void StartRagdoll();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -71,8 +77,7 @@ protected:
 
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-
-	void OnMaxMovementSpeedChanged(const FOnAttributeChangeData& Data);
+	
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -93,6 +98,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CharacterData();
+
+	UFUNCTION()
+	void OnRagdollStateTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -147,6 +155,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
 	FGameplayTag AimEndedEventTag;
 
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEvents")
+	FGameplayTag ZeroHealthEventTag;
+
 	// Gameplay Tags
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
 	FGameplayTagContainer InAirTag;
@@ -156,6 +167,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category ="GameplayTags")
 	FGameplayTagContainer SprintTag;
+
+	UPROPERTY(EditDefaultsOnly, Category ="GameplayTags")
+	FGameplayTagContainer RagdollStateTag;
 
 	// Gameplay Effects
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEffects")

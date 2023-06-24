@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "ActionGameGameModeBase.generated.h"
 
+class AAG_PlayerController;
 /**
  * 
  */
@@ -13,5 +14,8 @@ UCLASS()
 class ACTIONGAME_API AActionGameGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+	AActionGameGameModeBase();
+
+public:
+	void NotifyPlayerDied(AAG_PlayerController* PlayerController);
 };

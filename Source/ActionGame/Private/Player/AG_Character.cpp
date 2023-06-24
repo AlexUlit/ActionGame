@@ -6,10 +6,12 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameplayEffectExtension.h"
 #include "AbilitySystem/AttributeSets/AG_AttributeSet.h"
 #include "AbilitySystem/Components/AG_AbilitySystemComponentBase.h"
 #include "ActionGame/DataAssets/CharacterDataAsset.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Inventory/InventoryComponent.h"
 #include "Player/Input/AG_InputConfigData.h"
@@ -43,6 +45,9 @@ AAG_Character::AAG_Character(const FObjectInitializer& ObjectInitializer):Super(
 	
 	AttributeSet = CreateDefaultSubobject<UAG_AttributeSet>(TEXT("AttributeSet"));
 	ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxMovementSpeedAttribute()).AddUObject(this,&AAG_Character::OnMaxMovementSpeedChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute()).AddUObject(this,&AAG_Character::OnHealthAttributeChanged);
+
+	ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(TEXT("State.Ragdoll")), EGameplayTagEventType::NewOrRemoved).AddUObject(this,&AAG_Character::OnRagdollStateTagChanged);
 
 	FootstepsComponent = CreateDefaultSubobject<UFootstepsComponent>(TEXT("FootstepsComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UAG_MotionWarpingComponent>(TEXT("MotionWarpingComponent"));
@@ -110,6 +115,25 @@ void AAG_Character::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAd
 void AAG_Character::OnMaxMovementSpeedChanged(const FOnAttributeChangeData& Data)
 {
 	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+}
+
+void AAG_Character::OnHealthAttributeChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.NewValue <= 0 && Data.OldValue > 0)
+	{
+		AAG_Character* OtherCharacter = nullptr;
+
+		if (Data.GEModData)
+		{
+			const FGameplayEffectContextHandle& EffectContext = Data.GEModData->EffectSpec.GetEffectContext();
+			OtherCharacter = Cast<AAG_Character>(EffectContext.GetInstigator());
+		}
+
+		FGameplayEventData EventPayLoad;
+		EventPayLoad.EventTag = ZeroHealthEventTag;
+
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, ZeroHealthEventTag, EventPayLoad);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -297,6 +321,14 @@ void AAG_Character::OnRep_CharacterData()
 	InitFromCharacterData(CharacterData, true);
 }
 
+void AAG_Character::OnRagdollStateTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		StartRagdoll();
+	}
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 
 bool AAG_Character::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effect,
@@ -345,6 +377,21 @@ UAG_MotionWarpingComponent* AAG_Character::GetMotionWarpingComponent() const
 UCameraComponent* AAG_Character::GetFollowCamera() const
 {
 	return FollowCamera;
+}
+
+void AAG_Character::StartRagdoll()
+{
+	USkeletalMeshComponent* SkeletalMesh = GetMesh();
+	
+	if (SkeletalMesh && !SkeletalMesh->IsSimulatingPhysics())
+	{
+		SkeletalMesh->SetCollisionProfileName(TEXT("Ragdoll"));
+		SkeletalMesh->SetSimulatePhysics(true);
+		SkeletalMesh->SetAllPhysicsLinearVelocity(FVector::ZeroVector);
+		SkeletalMesh->SetAllPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+		SkeletalMesh->WakeAllRigidBodies();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
