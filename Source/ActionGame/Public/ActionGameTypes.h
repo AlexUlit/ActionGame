@@ -6,6 +6,7 @@
 #include "ActionGameTypes.generated.h"
 
 class AItemActor;
+class UNiagaraSystem;
 
 USTRUCT(BlueprintType)
 
@@ -119,4 +120,45 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USoundBase* AttackSound;
+};
+
+
+UCLASS(BlueprintType, Blueprintable)
+class UProjectileStaticData : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float BaseDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float DamageRadius;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float GravityMultiplayer = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float InitialSpeed = 3000.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float MaxSpeed = 3000.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UStaticMesh* StaticMesh;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<TSubclassOf<UGameplayEffect>> Effects;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<TEnumAsByte<EObjectTypeQuery>> RadialDamageQueryTypes;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TEnumAsByte<ETraceTypeQuery> RadialDamageTraceType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UNiagaraSystem* OnStopVfX = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	USoundBase* OnStopSfX = nullptr;
 };

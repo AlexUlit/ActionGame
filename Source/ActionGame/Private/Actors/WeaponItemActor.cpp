@@ -30,7 +30,7 @@ void AWeaponItemActor::PlayerWeaponEffects(const FHitResult& InHitResult)
 	}
 	else
 	{
-		PlayerWeaponEffectsInternal(InHitResult);
+		PlayWeaponEffectsInternal(InHitResult);
 	}
 }
 
@@ -64,7 +64,7 @@ void AWeaponItemActor::InitInternal()
 	}
 }
 
-void AWeaponItemActor::PlayerWeaponEffectsInternal(const FHitResult& InHitResult)
+void AWeaponItemActor::PlayWeaponEffectsInternal(const FHitResult& InHitResult)
 {
 	if (InHitResult.PhysMaterial.Get())
 	{
@@ -85,7 +85,7 @@ void AWeaponItemActor::MulticastPlayerWeaponEffects_Implementation(const FHitRes
 {
 	if (!Owner || Owner->GetLocalRole() != ROLE_AutonomousProxy)
 	{
-		PlayerWeaponEffectsInternal(InHitResult);
+		PlayWeaponEffectsInternal(InHitResult);
 	}
 }
 

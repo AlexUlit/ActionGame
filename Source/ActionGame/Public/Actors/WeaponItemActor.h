@@ -33,7 +33,7 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayerWeaponEffects(const FHitResult& InHitResult);
 
-	void PlayerWeaponEffectsInternal(const FHitResult& InHitResult);
+	void PlayWeaponEffectsInternal(const FHitResult& InHitResult);
 	
 protected:
 	UPROPERTY()
